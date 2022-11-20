@@ -4,6 +4,7 @@ import axios, {AxiosError, AxiosResponse} from 'axios';
 import cookieParser from 'cookie-parser'
 import { JsonObjectExpression } from 'typescript';
 import {GameResponse} from './gameresponse'
+import {GamesRoute} from './gamesroute'
 
 require('dotenv').config() 
 
@@ -27,18 +28,24 @@ type game_request= {
     'game_name': string, 
 }
 
-app.get('/games/:gamename', (req: Request, res: Response) =>{
+app.get('/games', (req: Request, res: Response) =>{
 
     var request:game_request = JSON.parse(JSON.stringify(req.body))
 
-    var game_name:string = req.params.gamename
+    var game_name:string = request.game_name
+
+    var finalresponse:GamesRoute = {
+        'status':"", 
+        'url':"", 
+        'summary':""
+    }
 
     console.log(game_name)
 
     var tokensList = JSON.parse(JSON.stringify(req.cookies))
     
     if(tokensList.hasOwnProperty('access_token')){
-        axios.post(`${BASE_URL}/games`,`fields name ,id, cover, genres, summary; where name ~ "${game_name}"*; sort rating desc; limit 10;`, {
+        axios.post(`${BASE_URL}/games`,`fields name ,id, screenshots, genres, summary; where name ~ "${game_name}"*; sort rating desc; limit 10;`, {
             headers:{
                 'Client-ID': 'k05d397kpvmewomdscqorlsurxvj1h', 
                 'Authorization' : `Bearer ${tokensList["access_token"]}`
@@ -48,15 +55,13 @@ app.get('/games/:gamename', (req: Request, res: Response) =>{
             var gameresponseArray:[] = response.data
             var perfectexample:GameResponse={
                 'id':0, 
-                'cover':0, 
+                'screenshots':[0], 
                 'genres':[0], 
                 'name':"name", 
                 'summary':"name"
-            }; 
-            console.log(gameresponseArray)
+            };         
+            if(gameresponseArray.length !== 0){
 
-            if(gameresponseArray){
-                
                 var bool:Boolean = true; 
                 var index:number = 0; 
                 while(bool){
@@ -65,21 +70,22 @@ app.get('/games/:gamename', (req: Request, res: Response) =>{
                     }
                     else{
                         var element:any = gameresponseArray[index]
-                        if(element.hasOwnProperty("cover") && element.hasOwnProperty("summary")){
+
+                        if(element && element.hasOwnProperty("screenshots") && element.hasOwnProperty("summary")){
                             perfectexample = element
                             bool = false; 
                         }
-                        index +=1
                     }
+                    index +=1
                 }
 
                 if(bool){
-                    console.log("nothing found"); 
+                    res.send(finalresponse)
                 }
                 else {
-                var coverstring:number = perfectexample["cover"] 
+                var coverstring:number = perfectexample["screenshots"][0] 
 
-                axios.post(`${BASE_URL}/covers`,`fields url; where id=${coverstring}; limit 10;`, 
+                axios.post(`${BASE_URL}/screenshots`,`fields url; where id=${coverstring}; limit 10;`, 
                 {
                     headers:{
                         'Client-ID': 'k05d397kpvmewomdscqorlsurxvj1h', 
@@ -87,14 +93,19 @@ app.get('/games/:gamename', (req: Request, res: Response) =>{
                     }
                 }
                 ).then((response:AxiosResponse)=>{
-                    console.log(response.data)
+                    finalresponse["status"]="found"; 
+                    finalresponse["summary"]=perfectexample["summary"]
+                    finalresponse["url"]="https:"+response.data[0]["url"]
+                    finalresponse["url"] = finalresponse["url"].replace("t_thumb","t_cover_big")
+                    res.send(finalresponse)
+
                 }).catch((error:any)=>{
                     console.log(error)
                 })
                 }
-
-                //console.log(gameresponseArray[1])
-
+            }
+            else{
+                res.send(finalresponse)
             }
         })
     }

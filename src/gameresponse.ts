@@ -1,9 +1,12 @@
+import axios from "axios"
+
 type GameResponse={
     'id':number, 
-    'cover':number, 
+    'screenshots':number[], 
     'genres': number[], 
     'name':string, 
     'summary':string
 }
 
 export {GameResponse}
+
