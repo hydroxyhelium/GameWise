@@ -44,8 +44,58 @@ app.get('/games/:gamename', (req: Request, res: Response) =>{
                 'Authorization' : `Bearer ${tokensList["access_token"]}`
             }
         }).then((response: AxiosResponse)=>{
-            var gameresponseArray: GameResponse[] = response.data
-            console.log(response.data)
+
+            var gameresponseArray:[] = response.data
+            var perfectexample:GameResponse={
+                'id':0, 
+                'cover':0, 
+                'genres':[0], 
+                'name':"name", 
+                'summary':"name"
+            }; 
+            console.log(gameresponseArray)
+
+            if(gameresponseArray){
+                
+                var bool:Boolean = true; 
+                var index:number = 0; 
+                while(bool){
+                    if(index === gameresponseArray.length-1){
+                        break; 
+                    }
+                    else{
+                        var element:any = gameresponseArray[index]
+                        if(element.hasOwnProperty("cover") && element.hasOwnProperty("summary")){
+                            perfectexample = element
+                            bool = false; 
+                        }
+                        index +=1
+                    }
+                }
+
+                if(bool){
+                    console.log("nothing found"); 
+                }
+                else {
+                var coverstring:number = perfectexample["cover"] 
+
+                axios.post(`${BASE_URL}/covers`,`fields url; where id=${coverstring}; limit 10;`, 
+                {
+                    headers:{
+                        'Client-ID': 'k05d397kpvmewomdscqorlsurxvj1h', 
+                        'Authorization' : `Bearer ${tokensList["access_token"]}`
+                    }
+                }
+                ).then((response:AxiosResponse)=>{
+                    console.log(response.data)
+                }).catch((error:any)=>{
+                    console.log(error)
+                })
+                }
+
+                //console.log(gameresponseArray[1])
+
+            }
         })
     }
 })
