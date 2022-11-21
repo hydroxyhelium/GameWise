@@ -2,9 +2,16 @@ import express, { Application, Request, response, Response } from 'express';
 import bodyParser from 'body-parser';
 import axios, {AxiosError, AxiosResponse} from 'axios'; 
 import cookieParser from 'cookie-parser'
+import {GetGameInfo} from './getgameinfo';
+
 import { JsonObjectExpression } from 'typescript';
 import {GameResponse} from './gameresponse'
 import {GamesRoute} from './gamesroute'
+import {OpenAiInput} from './openAIinput'
+
+
+import { Configuration, OpenAIApi } from "openai";
+import {GenerateMessage} from './generateMessage'
 
 require('dotenv').config() 
 
@@ -24,91 +31,31 @@ var grant_type:string = 'client_credentials'
 // we store the access token along with the timestamp on the cookie, if the cookie is expired, or does not exists,
 // we generate a new cookie for the user. 
 
-type game_request= { 
-    'game_name': string, 
-}
 
-app.get('/games', (req: Request, res: Response) =>{
+app.get('/recommend', (req:Request, res:Response)=>{
 
-    var request:game_request = JSON.parse(JSON.stringify(req.body))
+    var movieList:OpenAiInput = JSON.parse(JSON.stringify(req.body))
 
-    var game_name:string = request.game_name
+    console.log(movieList)
 
-    var finalresponse:GamesRoute = {
-        'status':"", 
-        'url':"", 
-        'summary':""
-    }
+    var input:string = GenerateMessage(movieList)
 
-    console.log(game_name)
+    axios.post('https://api.openai.com/v1/completions',
+        {"model": "text-davinci-002", "prompt": `${input}`, "temperature": 0, "max_tokens": 3}
+     ,{
+        headers:{
+            'Client-ID': 'k05d397kpvmewomdscqorlsurxvj1h', 
+            'Authorization' : `Bearer ${process.env.OPENAI_API_KEY}`
+        }
+    }).then((response:AxiosResponse)=>{
+        console.log(response.data)
+        
+    })
 
-    var tokensList = JSON.parse(JSON.stringify(req.cookies))
-    
-    if(tokensList.hasOwnProperty('access_token')){
-        axios.post(`${BASE_URL}/games`,`fields name ,id, screenshots, genres, summary; where name ~ "${game_name}"*; sort rating desc; limit 10;`, {
-            headers:{
-                'Client-ID': 'k05d397kpvmewomdscqorlsurxvj1h', 
-                'Authorization' : `Bearer ${tokensList["access_token"]}`
-            }
-        }).then((response: AxiosResponse)=>{
+})
 
-            var gameresponseArray:[] = response.data
-            var perfectexample:GameResponse={
-                'id':0, 
-                'screenshots':[0], 
-                'genres':[0], 
-                'name':"name", 
-                'summary':"name"
-            };         
-            if(gameresponseArray.length !== 0){
-
-                var bool:Boolean = true; 
-                var index:number = 0; 
-                while(bool){
-                    if(index === gameresponseArray.length-1){
-                        break; 
-                    }
-                    else{
-                        var element:any = gameresponseArray[index]
-
-                        if(element && element.hasOwnProperty("screenshots") && element.hasOwnProperty("summary")){
-                            perfectexample = element
-                            bool = false; 
-                        }
-                    }
-                    index +=1
-                }
-
-                if(bool){
-                    res.send(finalresponse)
-                }
-                else {
-                var coverstring:number = perfectexample["screenshots"][0] 
-
-                axios.post(`${BASE_URL}/screenshots`,`fields url; where id=${coverstring}; limit 10;`, 
-                {
-                    headers:{
-                        'Client-ID': 'k05d397kpvmewomdscqorlsurxvj1h', 
-                        'Authorization' : `Bearer ${tokensList["access_token"]}`
-                    }
-                }
-                ).then((response:AxiosResponse)=>{
-                    finalresponse["status"]="found"; 
-                    finalresponse["summary"]=perfectexample["summary"]
-                    finalresponse["url"]="https:"+response.data[0]["url"]
-                    finalresponse["url"] = finalresponse["url"].replace("t_thumb","t_cover_big")
-                    res.send(finalresponse)
-
-                }).catch((error:any)=>{
-                    console.log(error)
-                })
-                }
-            }
-            else{
-                res.send(finalresponse)
-            }
-        })
-    }
+app.get('/games/:gamename', (req: Request, res: Response) =>{
+    GetGameInfo(req, res)
 })
 
 app.get('/', (req: Request, res: Response) => {
@@ -135,7 +82,6 @@ app.get('/', (req: Request, res: Response) => {
     })
     }
 })
-
 
 const PORT = 8000;
 
