@@ -16,6 +16,7 @@ import {GenerateMessage} from './generateMessage'
 require('dotenv').config() 
 
 const app: Application = express();
+var cors = require('cors')
 //const cookieParser = require('cookie-parser')
 
 var BASE_URL = "https://api.igdb.com/v4" 
@@ -23,6 +24,7 @@ var BASE_URL = "https://api.igdb.com/v4"
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser())
+app.use(cors())
 
 var client_id:string = 'k05d397kpvmewomdscqorlsurxvj1h'
 var client_secret:string = '5mpcxo37j8gu9wze225i6mizlueqnj'
@@ -53,6 +55,23 @@ app.get('/recommend', (req:Request, res:Response)=>{
     })
 
 })
+
+app.get('/random', (req:Request, res:Response)=>{
+
+    axios.post('https://api.openai.com/v1/completions',
+        {"model": "text-davinci-002", "prompt": `Output a list of 10 random popular games in form of JSON`, "temperature": 0, "max_tokens": 100}
+     ,{
+        headers:{
+            'Client-ID': 'k05d397kpvmewomdscqorlsurxvj1h', 
+            'Authorization' : `Bearer ${process.env.OPENAI_API_KEY}`
+        }
+    }).then((response:AxiosResponse)=>{
+        console.log(response.data)
+        res.send(response.data.choices[0]["text"])
+    })
+
+})
+
 
 app.get('/games/:gamename', (req: Request, res: Response) =>{
     GetGameInfo(req, res)
