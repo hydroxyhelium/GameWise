@@ -13,8 +13,10 @@ type game_request= {
 
 const GetGameInfo = (req:Request, res:Response)=>{
 
-    var request:game_request = JSON.parse(JSON.stringify(req.body))
+    console.log(req.body)
 
+    var request:game_request = JSON.parse(JSON.stringify(req.body))
+    
     var game_name:string = request.game_name
 
     var finalresponse:GamesRoute = {

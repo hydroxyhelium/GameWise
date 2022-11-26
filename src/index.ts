@@ -17,6 +17,12 @@ require('dotenv').config()
 
 const app: Application = express();
 var cors = require('cors')
+
+const corsOptions ={
+    origin:'http://localhost:3000', 
+    credentials:true,            //access-control-allow-credentials:true
+    optionSuccessStatus:200
+}
 //const cookieParser = require('cookie-parser')
 
 var BASE_URL = "https://api.igdb.com/v4" 
@@ -24,7 +30,7 @@ var BASE_URL = "https://api.igdb.com/v4"
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser())
-app.use(cors())
+app.use(cors(corsOptions))
 
 var client_id:string = 'k05d397kpvmewomdscqorlsurxvj1h'
 var client_secret:string = '5mpcxo37j8gu9wze225i6mizlueqnj'
@@ -38,6 +44,7 @@ app.get('/recommend', (req:Request, res:Response)=>{
 
     var movieList:OpenAiInput = JSON.parse(JSON.stringify(req.body))
 
+    console.log("movie list")
     console.log(movieList)
 
     var input:string = GenerateMessage(movieList)
@@ -73,7 +80,8 @@ app.get('/random', (req:Request, res:Response)=>{
 })
 
 
-app.get('/games/:gamename', (req: Request, res: Response) =>{
+app.post('/games', (req: Request, res: Response) =>{
+    console.log(req.body)
     GetGameInfo(req, res)
 })
 
