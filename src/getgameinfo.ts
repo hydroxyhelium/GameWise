@@ -16,7 +16,7 @@ const GetGameInfo = (req:Request, res:Response)=>{
     console.log(req.body)
 
     var request:game_request = JSON.parse(JSON.stringify(req.body))
-    
+
     var game_name:string = request.game_name
 
     var finalresponse:GamesRoute = {
@@ -37,7 +37,7 @@ const GetGameInfo = (req:Request, res:Response)=>{
                 'Authorization' : `Bearer ${tokensList["access_token"]}`
             }
         }).then((response: AxiosResponse)=>{
-
+            console.log(response.data)
             var gameresponseArray:[] = response.data
             var perfectexample:GameResponse={
                 'id':0, 
@@ -51,7 +51,7 @@ const GetGameInfo = (req:Request, res:Response)=>{
                 var bool:Boolean = true; 
                 var index:number = 0; 
                 while(bool){
-                    if(index === gameresponseArray.length-1){
+                    if(index === gameresponseArray.length){
                         break; 
                     }
                     else{
