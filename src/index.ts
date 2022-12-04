@@ -40,7 +40,7 @@ var grant_type:string = 'client_credentials'
 // we generate a new cookie for the user. 
 
 
-app.get('/recommend', (req:Request, res:Response)=>{
+app.post('/recommend', (req:Request, res:Response)=>{
 
     var movieList:OpenAiInput = JSON.parse(JSON.stringify(req.body))
 
@@ -50,7 +50,7 @@ app.get('/recommend', (req:Request, res:Response)=>{
     var input:string = GenerateMessage(movieList)
 
     axios.post('https://api.openai.com/v1/completions',
-        {"model": "text-davinci-002", "prompt": `${input}`, "temperature": 0, "max_tokens": 3}
+        {"model": "text-davinci-002", "prompt": `${input}`, "temperature": 0.9, "max_tokens": 15}
      ,{
         headers:{
             'Client-ID': 'k05d397kpvmewomdscqorlsurxvj1h', 
@@ -58,7 +58,8 @@ app.get('/recommend', (req:Request, res:Response)=>{
         }
     }).then((response:AxiosResponse)=>{
         console.log(response.data)
-        
+        console.log(response.data.choices[0]["text"])
+        res.send(response.data.choices[0]["text"])
     })
 
 })
@@ -66,7 +67,7 @@ app.get('/recommend', (req:Request, res:Response)=>{
 app.get('/random', (req:Request, res:Response)=>{
 
     axios.post('https://api.openai.com/v1/completions',
-        {"model": "text-davinci-002", "prompt": `Output a list of 10 random popular games in form of JSON`, "temperature": 0, "max_tokens": 100}
+        {"model": "text-davinci-002", "prompt": `Output a list of 10 popular games in form of JSON`, "temperature": 0, "max_tokens": 100}
      ,{
         headers:{
             'Client-ID': 'k05d397kpvmewomdscqorlsurxvj1h', 

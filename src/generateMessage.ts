@@ -12,7 +12,7 @@ const GenerateMessage = (object:OpenAiInput)=>{
         list_of_movies_disliked+= ` ${e},`
     })
 
-    return `Output a good game to play, I like ${list_of_movies_liked} and ${list_of_movies_disliked}`
+    return `I like ${list_of_movies_liked} and dislike ${list_of_movies_disliked}, return a random game.`
 }
 
 export {GenerateMessage}
