@@ -1,4 +1,10 @@
+# package directories
+node_modules
+jspm_packages
 /node_modules
 .env*
 apitoken.ts
 dist
+# Serverless directories
+.serverless
+serverless.yml
